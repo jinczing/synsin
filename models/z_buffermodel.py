@@ -136,6 +136,53 @@ class ZbufferModelPts(nn.Module):
             },
         )
 
+    # modified forward_angle that receives ground truth depth
+    def forward_angle_gt_depth(self, batch, gt_depths, RTs, return_depth=False):
+        # Input values
+        input_img = batch["images"][0]
+
+        # Camera parameters
+        K = batch["cameras"][0]["K"]
+        K_inv = batch["cameras"][0]["Kinv"]
+
+        if torch.cuda.is_available():
+            input_img = input_img.cuda()
+
+            K = K.cuda()
+            K_inv = K_inv.cuda()
+
+            RTs = [RT.cuda() for RT in RTs]
+            identity = (
+                torch.eye(4).unsqueeze(0).repeat(input_img.size(0), 1, 1).cuda()
+            )
+
+        fs = self.encoder(input_img)
+        regressed_pts = (
+            gt_depths
+            * (self.opt.max_z - self.opt.min_z)
+            + self.opt.min_z
+        )
+
+        # Now rotate
+        gen_imgs = []
+        for RT in RTs:
+            torch.manual_seed(
+                0
+            )  # Reset seed each time so that noise vectors are the same
+            gen_fs = self.pts_transformer.forward_justpts(
+                fs, regressed_pts, K, K_inv, identity, identity, RT, None
+            )
+
+            # now create a new image
+            gen_img = self.projector(gen_fs)
+
+            gen_imgs += [gen_img]
+
+        if return_depth:
+            return gen_imgs, regressed_pts
+
+        return gen_imgs
+
     def forward_angle(self, batch, RTs, return_depth=False):
         # Input values
         input_img = batch["images"][0]

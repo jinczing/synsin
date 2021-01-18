@@ -1,4 +1,4 @@
-name: pytorch3d_src
+name: synsin_env
 channels:
   - pytorch
   - fvcore
@@ -116,5 +116,5 @@ dependencies:
   - fvcore=0.1.dev200114=py37_0
   - pytorch=1.4.0=py3.7_cuda10.0.130_cudnn7.6.3_0
   - torchvision=0.5.0=py37_cu100
-prefix: /private/home/ow045820/.conda/envs/pytorch3d_src
+prefix: /private/home/ow045820/.conda/envs/synsin_env
 
