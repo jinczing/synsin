@@ -73,8 +73,10 @@ class RasterizePointsXYsBlending(nn.Module):
 
         # Add on the default feature to the end of the src
         # src = torch.cat((src, self.default_feature.repeat(bs, 1, 1)), 2)
-
-        radius = float(self.radius) / float(image_size) * 2.0
+        if isinstance(image_size, float):
+            radius = float(self.radius) / float(image_size) * 2.0
+        else:
+            radius = float(self.radius) / float(image_size[1]) * 2.0
 
         pts3D = Pointclouds(points=pts3D, features=src.permute(0,2,1))
         points_idx, _, dist = rasterize_points(
